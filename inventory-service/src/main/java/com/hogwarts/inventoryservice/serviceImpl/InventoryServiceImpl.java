@@ -1,0 +1,62 @@
+package com.hogwarts.inventoryservice.serviceImpl;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.hogwarts.inventoryservice.entity.Inventory;
+import com.hogwarts.inventoryservice.entity.client.ProductClient;
+import com.hogwarts.inventoryservice.entity.dto.ProductDto;
+import com.hogwarts.inventoryservice.repository.InventoryRepository;
+import com.hogwarts.inventoryservice.service.InventoryService;
+
+@Service
+public class InventoryServiceImpl implements InventoryService {
+
+	@Autowired
+	private InventoryRepository inventoryRepository;
+
+	@Autowired
+	private ProductClient productClient;
+
+
+	@Override
+	public Inventory updateInventory(Inventory inventory) {
+		ProductDto productDto = productClient.getProductById(inventory.getProductId());
+		if (productDto != null) {
+			inventory.setProductName(productDto.getName());
+			return inventoryRepository.save(inventory);
+		} else {
+			throw new RuntimeException("Product Not Found");
+		}
+	}
+
+	@Override
+	public Inventory getInventoryByProductId(Long productId) {
+
+		return inventoryRepository.findById(productId).orElse(null);
+	}
+
+	@Override
+	public List<Inventory> getAllInventory() {
+		return inventoryRepository.findAll();
+	}
+
+	@Override
+	public void inventoryUpdate(Inventory inventory) {
+		Optional<Inventory> inventoryOpt = inventoryRepository.findById(inventory.getProductId());
+        if (inventoryOpt.isPresent()) {
+            Inventory inventory2 = inventoryOpt.get();
+            inventory.setQuantity(inventory.getQuantity());
+            inventoryRepository.save(inventory2);
+        } else {
+            throw new RuntimeException("Inventory not found for product id " + inventory.getProductId());
+        }
+		
+	}
+	
+	
+
+}
