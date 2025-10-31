@@ -25,11 +25,17 @@ public class InventoryServiceImpl implements InventoryService {
 	@Override
 	public Inventory updateInventory(Inventory inventory) {
 		ProductDto productDto = productClient.getProductById(inventory.getProductId());
-		if (productDto != null) {
-			inventory.setProductName(productDto.getName());
-			return inventoryRepository.save(inventory);
-		} else {
+		if(productDto == null) {
 			throw new RuntimeException("Product Not Found");
+		}
+		inventory.setProductName(productDto.getName());
+		Optional<Inventory> inventoryOpt = inventoryRepository.findById(inventory.getProductId());
+		if (inventoryOpt.isPresent()) {
+			Inventory existingInventory = inventoryOpt.get();
+			existingInventory.setQuantity(existingInventory.getQuantity() + inventory.getQuantity());
+			return inventoryRepository.save(existingInventory);
+		} else {
+			return inventoryRepository.save(inventory);
 		}
 	}
 
